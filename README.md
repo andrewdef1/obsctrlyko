@@ -63,34 +63,129 @@ Enter your connection details:
 
 ---
 
-## 🌐 Remote Access via wss:// Tunnel (Cloudflare)
+## 🌐 Remote Access via Cloudflare Tunnel
 
 GitHub Pages is served over **HTTPS**, so browsers block plain `ws://` connections.
-To use this app remotely, expose OBS WebSocket over a secure `wss://` tunnel.
+Gunakan Cloudflare Tunnel untuk membuat OBS bisa diakses secara remote dengan aman via `wss://`.
 
-### Option A: Cloudflare Tunnel (Free, No Account Needed)
+---
+
+### 📋 Step-by-Step: Connect OBS ke App via Tunnel
+
+#### Step 1 — Pastikan OBS Sudah Running
+
+Buka **OBS Studio**, lalu aktifkan WebSocket Server:
+
+1. Klik menu **Tools → WebSocket Server Settings**
+2. ✅ Centang **Enable WebSocket Server**
+3. Set Port: `4455`
+4. (Opsional) Set password
+5. Klik **OK**
+
+---
+
+#### Step 2 — Download `cloudflared`
+
+> Jika sudah terinstall via `winget`, skip ke Step 3.
+
+Download manual (Windows 64-bit):
 
 ```powershell
-# 1. Install cloudflared (Windows)
+# Download ke folder project
+Invoke-WebRequest -Uri "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe" -OutFile "cloudflared.exe"
+```
+
+Atau install via winget:
+
+```powershell
 winget install --id Cloudflare.cloudflared
-
-# 2. Create a temporary public tunnel to OBS WebSocket
-cloudflared tunnel --url ws://localhost:4455
 ```
 
-Cloudflare will print a URL like:
-```
-https://random-name.trycloudflare.com
+---
+
+#### Step 3 — Jalankan Tunnel di Terminal Baru
+
+> ⚠️ Buka **terminal baru** (jangan pakai terminal yang sedang menjalankan `npm run dev`)
+
+```powershell
+# Jika download manual ke folder project:
+cd e:\Andrew\Code\obsctrlyko
+.\cloudflared.exe tunnel --url http://localhost:4455
+
+# Jika install via winget (sudah ada di PATH):
+cloudflared tunnel --url http://localhost:4455
 ```
 
-In the app, enter this as your Host:
-- Host: `wss://random-name.trycloudflare.com`
-- Port: `443` (or remove port — HTTPS default)
-- Password: *(your OBS password)*
+Tunggu sampai muncul output seperti ini:
 
-> ⚠️ The free tunnel URL changes every time you run the command. For a persistent URL, create a free Cloudflare account and use named tunnels.
+```
++--------------------------------------------------------------------------------------------+
+|  Your quick Tunnel has been created! Visit it at (it may take some time to be reachable):  |
+|  https://xxxxx-xxxxx-xxxxx.trycloudflare.com                                               |
++--------------------------------------------------------------------------------------------+
+```
+
+**Salin URL `https://xxxxx-xxxxx-xxxxx.trycloudflare.com` tersebut.**
+
+> ⚠️ Jangan tutup terminal ini selama menggunakan app — tunnel akan mati jika terminal ditutup.
+
+---
+
+#### Step 4 — Buka App di Browser
+
+Buka: **[https://andrewdef1.github.io/obsctrlyko/](https://andrewdef1.github.io/obsctrlyko/)**
+
+---
+
+#### Step 5 — Isi Form Koneksi di App
+
+Di panel **CONNECTION** sebelah kiri, isi seperti ini:
+
+| Field | Value |
+|-------|-------|
+| **Host / URL** | `wss://xxxxx-xxxxx-xxxxx.trycloudflare.com` |
+| **Port** | `443` |
+| **Password** | *(password OBS kamu, atau kosongkan jika tidak diset)* |
+
+> ⚠️ **Penting:** Ganti `https://` menjadi `wss://` saat mengisi ke form!
+>
+> Contoh:
+> - Dari: `https://certainly-regard-jurisdiction-prague.trycloudflare.com`
+> - Menjadi: `wss://certainly-regard-jurisdiction-prague.trycloudflare.com`
+
+---
+
+#### Step 6 — Klik Connect
+
+Klik tombol **⚡ Connect**
+
+Jika berhasil:
+- ✅ Status bar di kanan atas berubah menjadi 🟢 **Connected**
+- ✅ Daftar scene OBS kamu muncul di panel **SCENES**
+- ✅ Klik scene mana saja untuk melihat sources-nya
+
+---
+
+### 🗺️ Ringkasan Alur
+
+```
+[OBS Studio]                    [Terminal/PowerShell Baru]
+  WebSocket ON      ──────────→  .\cloudflared.exe tunnel --url http://localhost:4455
+  Port: 4455                              ↓
+                              https://random.trycloudflare.com
+                                          ↓ (ganti https → wss)
+                         [Browser: andrewdef1.github.io/obsctrlyko/]
+                            Host: wss://random.trycloudflare.com
+                            Port: 443
+                            Password: (opsional)
+                            → Klik ⚡ Connect!
+```
+
+---
 
 ### Option B: Nginx Reverse Proxy (Persistent, Self-Hosted)
+
+Untuk URL tetap yang tidak berubah, gunakan Nginx sebagai reverse proxy dengan SSL:
 
 ```nginx
 server {
@@ -110,7 +205,7 @@ server {
 }
 ```
 
-Then use `wss://obs.yourdomain.com` as the host in the app.
+Lalu gunakan `wss://obs.yourdomain.com` sebagai Host di app.
 
 ---
 

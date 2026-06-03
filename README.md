@@ -183,6 +183,130 @@ Jika berhasil:
 
 ---
 
+### 📋 Step-by-Step: Connect OBS ke App via Tunnel (macOS)
+
+#### Step 1 — Pastikan OBS Sudah Running
+
+Buka **OBS Studio**, lalu aktifkan WebSocket Server:
+
+1. Klik menu **Tools → WebSocket Server Settings**
+2. ✅ Centang **Enable WebSocket Server**
+3. Set Port: `4455`
+4. (Opsional) Set password
+5. Klik **OK**
+
+---
+
+#### Step 2 — Install `cloudflared`
+
+> Jika sudah terinstall, skip ke Step 3.
+
+Install via **Homebrew** (cara yang direkomendasikan):
+
+```bash
+brew install cloudflared
+```
+
+Belum punya Homebrew? Install dulu:
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+Atau download manual (Apple Silicon / Intel):
+
+```bash
+# Apple Silicon (M1/M2/M3/M4)
+curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-arm64 -o cloudflared
+chmod +x cloudflared
+
+# Intel Mac
+curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-amd64 -o cloudflared
+chmod +x cloudflared
+```
+
+---
+
+#### Step 3 — Jalankan Tunnel di Terminal Baru
+
+> ⚠️ Buka **Terminal baru** (jangan pakai terminal yang sedang menjalankan `npm run dev`)
+
+```bash
+# Jika install via Homebrew (sudah ada di PATH):
+cloudflared tunnel --url http://localhost:4455
+
+# Jika download manual ke folder project:
+cd ~/path/to/obsctrlyko
+./cloudflared tunnel --url http://localhost:4455
+```
+
+Tunggu sampai muncul output seperti ini:
+
+```
++--------------------------------------------------------------------------------------------+
+|  Your quick Tunnel has been created! Visit it at (it may take some time to be reachable):  |
+|  https://xxxxx-xxxxx-xxxxx.trycloudflare.com                                               |
++--------------------------------------------------------------------------------------------+
+```
+
+**Salin URL `https://xxxxx-xxxxx-xxxxx.trycloudflare.com` tersebut.**
+
+> ⚠️ Jangan tutup terminal ini selama menggunakan app — tunnel akan mati jika terminal ditutup.
+
+---
+
+#### Step 4 — Buka App di Browser
+
+Buka: **[https://andrewdef1.github.io/obsctrlyko/](https://andrewdef1.github.io/obsctrlyko/)**
+
+---
+
+#### Step 5 — Isi Form Koneksi di App
+
+Di panel **CONNECTION** sebelah kiri, isi seperti ini:
+
+| Field | Value |
+|-------|-------|
+| **Host / URL** | `wss://xxxxx-xxxxx-xxxxx.trycloudflare.com` |
+| **Port** | `443` |
+| **Password** | *(password OBS kamu, atau kosongkan jika tidak diset)* |
+
+> ⚠️ **Penting:** Ganti `https://` menjadi `wss://` saat mengisi ke form!
+>
+> Contoh:
+> - Dari: `https://certainly-regard-jurisdiction-prague.trycloudflare.com`
+> - Menjadi: `wss://certainly-regard-jurisdiction-prague.trycloudflare.com`
+
+---
+
+#### Step 6 — Klik Connect
+
+Klik tombol **⚡ Connect**
+
+Jika berhasil:
+- ✅ Status bar di kanan atas berubah menjadi 🟢 **Connected**
+- ✅ Daftar scene OBS kamu muncul di panel **SCENES**
+- ✅ Klik scene mana saja untuk melihat sources-nya
+
+---
+
+### 🗺️ Ringkasan Alur (macOS)
+
+```
+[OBS Studio]                    [Terminal Baru]
+  WebSocket ON      ──────────→  cloudflared tunnel --url http://localhost:4455
+  Port: 4455                              ↓
+                               https://random.trycloudflare.com
+                                           ↓ (ganti https → wss)
+                          [Browser: andrewdef1.github.io/obsctrlyko/]
+                             Host: wss://random.trycloudflare.com
+                             Port: 443
+                             Password: (opsional)
+                             → Klik ⚡ Connect!
+```
+
+---
+
 ### Option B: Nginx Reverse Proxy (Persistent, Self-Hosted)
 
 Untuk URL tetap yang tidak berubah, gunakan Nginx sebagai reverse proxy dengan SSL:

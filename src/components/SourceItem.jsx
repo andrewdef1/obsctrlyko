@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useOBS } from '../hooks/useOBS';
 
-// Source type → icon mapping
 const KIND_ICONS = {
   browser_source:    '🌐',
   image_source:      '🖼️',
@@ -34,14 +33,19 @@ const AUDIO_KINDS = [
 const isAudioSource = (kind) => AUDIO_KINDS.includes(kind);
 
 /**
- * Individual source row inside SourcePanel.
+ * Individual source row. Supports drag-and-drop via HTML5 drag events.
+ * @param {{ source, sceneName, onEdit, onToast, onRefresh, onDragStart, onDragOver, onDrop, isDragging }} props
  */
-export default function SourceItem({ source, sceneName, onEdit, onToast, onRefresh }) {
+export default function SourceItem({
+  source, sceneName, onEdit, onToast, onRefresh,
+  onDragStart, onDragOver, onDrop, isDragging,
+}) {
   const { setSourceVisible, setInputMute, getInputMute, removeSceneItem } = useOBS();
   const [visible, setVisible] = useState(source.sceneItemEnabled);
-  const [muted, setMuted] = useState(null); // null = not yet loaded
+  const [muted, setMuted] = useState(null);
   const [loadingMute, setLoadingMute] = useState(false);
   const [loadingVis, setLoadingVis] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
 
   const audio = isAudioSource(source.inputKind);
 
@@ -65,7 +69,7 @@ export default function SourceItem({ source, sceneName, onEdit, onToast, onRefre
     try {
       const m = await getInputMute(source.sourceName);
       setMuted(m);
-    } catch (_) {
+    } catch {
       setMuted(false);
     } finally {
       setLoadingMute(false);
@@ -98,11 +102,42 @@ export default function SourceItem({ source, sceneName, onEdit, onToast, onRefre
     }
   };
 
+  // ── Drag handlers ─────────────────────────────────────────────────────────
+  const handleDragStart = (e) => {
+    e.dataTransfer.effectAllowed = 'move';
+    onDragStart(source);
+  };
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOver(true);
+    onDragOver(source);
+  };
+  const handleDragLeave = () => setDragOver(false);
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    onDrop(source);
+  };
+  const handleDragEnd = () => setDragOver(false);
+
   return (
     <div
-      className={`source-item ${!visible ? 'hidden-source' : ''}`}
+      className={`source-item ${!visible ? 'hidden-source' : ''} ${isDragging ? 'dragging' : ''} ${dragOver ? 'drag-over' : ''}`}
       style={{ animationDelay: `${(source._idx ?? 0) * 30}ms` }}
+      draggable
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      onDragEnd={handleDragEnd}
+      role="listitem"
     >
+      {/* Drag handle */}
+      <div className="drag-handle" title="Drag to reorder" aria-label="Drag handle">
+        ⠿
+      </div>
+
       {/* Icon */}
       <div className="source-item-icon">{getSourceIcon(source.inputKind)}</div>
 
@@ -114,7 +149,6 @@ export default function SourceItem({ source, sceneName, onEdit, onToast, onRefre
 
       {/* Actions */}
       <div className="source-item-actions">
-        {/* Mute toggle — only for audio sources */}
         {audio && (
           <button
             className="btn btn-icon btn-ghost btn-sm"
@@ -127,7 +161,6 @@ export default function SourceItem({ source, sceneName, onEdit, onToast, onRefre
           </button>
         )}
 
-        {/* Visibility toggle */}
         <button
           className="btn btn-icon btn-ghost btn-sm"
           title={visible ? 'Hide source' : 'Show source'}
@@ -139,7 +172,6 @@ export default function SourceItem({ source, sceneName, onEdit, onToast, onRefre
           {loadingVis ? <span className="spinner" style={{ width: 12, height: 12 }} /> : visible ? '👁️' : '🚫'}
         </button>
 
-        {/* Edit */}
         <button
           className="btn btn-icon btn-ghost btn-sm"
           title="Edit source settings"
@@ -150,7 +182,6 @@ export default function SourceItem({ source, sceneName, onEdit, onToast, onRefre
           ✏️
         </button>
 
-        {/* Remove */}
         <button
           className="btn btn-icon btn-danger btn-sm"
           title="Remove from scene"

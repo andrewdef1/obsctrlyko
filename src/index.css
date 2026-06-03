@@ -597,3 +597,230 @@ p  { line-height: 1.6; color: var(--text-secondary); }
 }
 .empty-state-icon { font-size: 2.5rem; opacity: 0.3; }
 .empty-state-text { font-size: 0.875rem; color: var(--text-secondary); max-width: 220px; line-height: 1.6; }
+
+/* ======================================================
+   Drag & Drop
+   ====================================================== */
+
+.drag-handle {
+  color: var(--text-muted);
+  font-size: 1rem;
+  cursor: grab;
+  padding: 2px 4px;
+  flex-shrink: 0;
+  transition: color 0.15s;
+  user-select: none;
+  line-height: 1;
+}
+.drag-handle:active { cursor: grabbing; }
+.source-item:hover .drag-handle { color: var(--text-secondary); }
+
+.source-item.dragging {
+  opacity: 0.4;
+  border-style: dashed;
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  cursor: grabbing;
+}
+
+.source-item.drag-over {
+  border-color: var(--accent);
+  background: rgba(0, 212, 255, 0.08);
+  transform: scaleY(1.02);
+  box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.2);
+}
+
+/* ======================================================
+   Preview Panel
+   ====================================================== */
+
+.preview-panel { padding: 20px; }
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.preview-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.preview-scene-name {
+  font-size: 0.78rem;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.preview-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* FPS selector */
+.fps-selector {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 3px;
+}
+.fps-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  padding: 0 6px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+.fps-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+  font-family: var(--font-mono);
+}
+.fps-btn:hover { color: var(--text-primary); background: var(--bg-card-hover); }
+.fps-btn.active { background: var(--accent-dim); color: var(--accent); }
+.fps-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn.preview-paused { color: var(--warning); border-color: rgba(255, 179, 71, 0.3); }
+
+/* Preview area */
+.preview-area {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: rgba(0,0,0,0.4);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 20px;
+}
+.preview-placeholder-icon { font-size: 2rem; opacity: 0.3; }
+.preview-placeholder p { font-size: 0.82rem; }
+
+.preview-img-wrap {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.preview-refresh-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse-dot 0.8s ease-in-out infinite;
+  box-shadow: 0 0 8px var(--accent);
+}
+
+.preview-paused-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--warning);
+  letter-spacing: 0.05em;
+  backdrop-filter: blur(2px);
+}
+
+.preview-skeleton {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+
+.preview-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.preview-info { font-size: 0.72rem; color: var(--text-secondary); font-family: var(--font-mono); }
+
+/* ======================================================
+   Add Source Modal
+   ====================================================== */
+
+.add-source-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.add-source-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: center;
+}
+.add-source-card:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(0, 212, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 212, 255, 0.1);
+}
+.add-source-card-icon { font-size: 1.5rem; line-height: 1; }
+.add-source-card-label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+.add-source-card-kind {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  word-break: break-all;
+}

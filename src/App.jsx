@@ -4,6 +4,7 @@ import ConnectionPanel from './components/ConnectionPanel';
 import StatusBar from './components/StatusBar';
 import SceneList from './components/SceneList';
 import SourcePanel from './components/SourcePanel';
+import PreviewPanel from './components/PreviewPanel';
 import Toast from './components/Toast';
 
 let toastId = 0;
@@ -34,7 +35,7 @@ function AppContent() {
 
       {/* Main */}
       <main className="app-main">
-        {/* Sidebar */}
+        {/* Left Sidebar: Connection + Scenes */}
         <aside className="sidebar">
           <ConnectionPanel onToast={addToast} />
           <SceneList
@@ -44,8 +45,9 @@ function AppContent() {
           />
         </aside>
 
-        {/* Main Content: Sources */}
-        <section className="main-content" aria-label="Source Management">
+        {/* Right: Preview on top, Sources below */}
+        <section className="main-content" aria-label="Preview and Source Management">
+          <PreviewPanel sceneName={selectedScene} />
           <SourcePanel sceneName={selectedScene} onToast={addToast} />
         </section>
       </main>

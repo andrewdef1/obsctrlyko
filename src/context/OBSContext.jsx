@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useCallback, useRef } from 'react';
+import { createContext, useReducer, useCallback, useRef } from 'react';
 import OBSWebSocket from 'obs-websocket-js';
 
 // ─── State Shape ────────────────────────────────────────────────────────────
@@ -67,7 +67,9 @@ export function OBSProvider({ children }) {
         try {
           const { scenes: newScenes, currentProgramSceneName: current } = await obs.call('GetSceneList');
           dispatch({ type: 'SET_SCENES', payload: { scenes: [...newScenes].reverse(), currentScene: current } });
-        } catch (_) {}
+        } catch {
+          // Scene list refresh failed silently
+        }
       });
 
       obs.on('ConnectionClosed', () => {
@@ -90,7 +92,9 @@ export function OBSProvider({ children }) {
     try {
       obsRef.current.removeAllListeners();
       await obsRef.current.disconnect();
-    } catch (_) {}
+    } catch {
+      // Disconnect error ignored
+    }
     // Re-create instance for a clean reconnect
     obsRef.current = new OBSWebSocket();
     dispatch({ type: 'DISCONNECTED' });
@@ -144,6 +148,41 @@ export function OBSProvider({ children }) {
     await obsRef.current.call('RemoveSceneItem', { sceneName, sceneItemId });
   }, []);
 
+  // ── Reorder source (drag & drop) ──────────────────────────────────────────
+  const setSceneItemIndex = useCallback(async (sceneName, sceneItemId, sceneItemIndex) => {
+    await obsRef.current.call('SetSceneItemIndex', { sceneName, sceneItemId, sceneItemIndex });
+  }, []);
+
+  // ── Create new input/source ───────────────────────────────────────────────
+  const createInput = useCallback(async (sceneName, inputName, inputKind, inputSettings = {}) => {
+    const result = await obsRef.current.call('CreateInput', {
+      sceneName,
+      inputName,
+      inputKind,
+      inputSettings,
+      sceneItemEnabled: true,
+    });
+    return result;
+  }, []);
+
+  // ── Get scene/source screenshot (for preview) ─────────────────────────────
+  const getSourceScreenshot = useCallback(async (sourceName, width = 960, height = 540) => {
+    const { imageData } = await obsRef.current.call('GetSourceScreenshot', {
+      sourceName,
+      imageFormat: 'jpeg',
+      imageWidth: width,
+      imageHeight: height,
+      imageCompressionQuality: 70,
+    });
+    return imageData;
+  }, []);
+
+  // ── Get input kind list (for Add Source modal) ────────────────────────────
+  const getInputKindList = useCallback(async () => {
+    const { inputKinds } = await obsRef.current.call('GetInputKindList');
+    return inputKinds;
+  }, []);
+
   const value = {
     ...state,
     connect,
@@ -157,6 +196,10 @@ export function OBSProvider({ children }) {
     setInputMute,
     renameSource,
     removeSceneItem,
+    setSceneItemIndex,
+    createInput,
+    getSourceScreenshot,
+    getInputKindList,
   };
 
   return <OBSContext.Provider value={value}>{children}</OBSContext.Provider>;
